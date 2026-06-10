@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import '../theme/app_theme.dart';
 import '../models/dummy_data.dart';
 import '../models/earthquake_model.dart';
+import '../widgets/notifications_sheet.dart';
 
 enum _LocationStatus { loading, success, denied, error }
 
@@ -17,11 +18,120 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   _LocationStatus _locStatus = _LocationStatus.loading;
   Position? _position;
+  List<EarthquakeNotification> _notifications = [];
 
   @override
   void initState() {
     super.initState();
     _fetchLocation();
+    _seedNotifications();
+  }
+
+  void _seedNotifications() {
+    final now = DateTime.now();
+    final eqList = DummyData.earthquakes;
+    _notifications = [
+      EarthquakeNotification(
+        id: 'n1',
+        title: 'Critical earthquake detected nearby',
+        message:
+            'A ${eqList[0].magnitude.toStringAsFixed(1)} magnitude earthquake struck ${eqList[0].location}. Take cover and follow local emergency guidance.',
+        earthquake: eqList[0],
+        time: now.subtract(const Duration(minutes: 3)),
+        type: NotificationType.alert,
+        isUnread: true,
+      ),
+      EarthquakeNotification(
+        id: 'n2',
+        title: 'Aftershock warning',
+        message:
+            'Possible aftershock expected in the next 30 minutes near ${eqList[1].location}. Stay alert.',
+        earthquake: eqList[1],
+        time: now.subtract(const Duration(minutes: 27)),
+        type: NotificationType.aftershock,
+        isUnread: true,
+      ),
+      EarthquakeNotification(
+        id: 'n3',
+        title: 'Shelter-in-place order issued',
+        message:
+            'Local authorities have issued a shelter-in-place order for ${eqList[0].region}. Avoid travel.',
+        earthquake: eqList[0],
+        time: now.subtract(const Duration(hours: 1, minutes: 12)),
+        type: NotificationType.info,
+        isUnread: true,
+      ),
+      EarthquakeNotification(
+        id: 'n4',
+        title: 'Rescue operations underway',
+        message:
+            'Rescue teams dispatched to ${eqList[2].location}. Volunteers requested to register at the help page.',
+        earthquake: eqList[2],
+        time: now.subtract(const Duration(hours: 3, minutes: 5)),
+        type: NotificationType.info,
+        isUnread: false,
+      ),
+      EarthquakeNotification(
+        id: 'n5',
+        title:
+            'All clear — M${eqList[3].magnitude.toStringAsFixed(1)} ${eqList[3].location}',
+        message:
+            'No further damage reported. The situation in ${eqList[3].location} has been marked as resolved.',
+        earthquake: eqList[3],
+        time: now.subtract(const Duration(hours: 7, minutes: 40)),
+        type: NotificationType.resolved,
+        isUnread: false,
+      ),
+    ];
+  }
+
+  void _openNotifications() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return NotificationsSheet(
+          notifications: _notifications,
+          onMarkAsRead: (id) {
+            setState(() {
+              _notifications = _notifications
+                  .map(
+                    (n) => n.id == id
+                        ? EarthquakeNotification(
+                            id: n.id,
+                            title: n.title,
+                            message: n.message,
+                            earthquake: n.earthquake,
+                            time: n.time,
+                            type: n.type,
+                            isUnread: false,
+                          )
+                        : n,
+                  )
+                  .toList();
+            });
+          },
+          onClearAll: () {
+            setState(() {
+              _notifications = _notifications
+                  .map(
+                    (n) => EarthquakeNotification(
+                      id: n.id,
+                      title: n.title,
+                      message: n.message,
+                      earthquake: n.earthquake,
+                      time: n.time,
+                      type: n.type,
+                      isUnread: false,
+                    ),
+                  )
+                  .toList();
+            });
+          },
+        );
+      },
+    );
   }
 
   Future<void> _fetchLocation() async {
@@ -109,8 +219,11 @@ class _HomePageState extends State<HomePage> {
         IconButton(
           icon: Stack(
             children: [
-              Icon(Icons.notifications_rounded,
-                  color: AppColors.textPrimary, size: 24.sp),
+              Icon(
+                Icons.notifications_rounded,
+                color: AppColors.textPrimary,
+                size: 24.sp,
+              ),
               Positioned(
                 right: 0,
                 top: 0,
@@ -125,7 +238,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          onPressed: () {},
+          onPressed: _openNotifications,
         ),
         SizedBox(width: 4.w),
       ],
@@ -323,10 +436,7 @@ class _HomePageState extends State<HomePage> {
         return [
           Text(
             'Fetching location…',
-            style: TextStyle(
-              color: AppColors.textHint,
-              fontSize: 13.sp,
-            ),
+            style: TextStyle(color: AppColors.textHint, fontSize: 13.sp),
           ),
         ];
       case _LocationStatus.success:
@@ -346,10 +456,7 @@ class _HomePageState extends State<HomePage> {
           SizedBox(height: 2.h),
           Text(
             'Accuracy ±${acc}m',
-            style: TextStyle(
-              color: AppColors.accent,
-              fontSize: 11.sp,
-            ),
+            style: TextStyle(color: AppColors.accent, fontSize: 11.sp),
           ),
         ];
       case _LocationStatus.denied:
@@ -379,10 +486,7 @@ class _HomePageState extends State<HomePage> {
         return [
           Text(
             'Location unavailable',
-            style: TextStyle(
-              color: AppColors.textHint,
-              fontSize: 13.sp,
-            ),
+            style: TextStyle(color: AppColors.textHint, fontSize: 13.sp),
           ),
         ];
     }
@@ -392,99 +496,100 @@ class _HomePageState extends State<HomePage> {
     return Padding(
       padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0),
       child: Container(
-            padding: EdgeInsets.all(20.w),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(
-                color: eq.severityColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                _MagnitudeCircle(
-                    magnitude: eq.magnitude, color: eq.severityColor),
-                SizedBox(width: 16.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(
+            color: eq.severityColor.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            _MagnitudeCircle(magnitude: eq.magnitude, color: eq.severityColor),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              eq.location,
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                      Expanded(
+                        child: Text(
+                          eq.location,
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w700,
                           ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 8.w, vertical: 4.h),
-                            decoration: BoxDecoration(
-                              color: eq.severityColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: Text(
-                              eq.severityLabel,
-                              style: TextStyle(
-                                color: eq.severityColor,
-                                fontSize: 10.sp,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        eq.region,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13.sp,
                         ),
                       ),
-                      SizedBox(height: 12.h),
-                      Row(
-                        children: [
-                          _InfoChip(
-                            icon: Icons.vertical_align_bottom_rounded,
-                            label: '${eq.depth} km depth',
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: eq.severityColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Text(
+                          eq.severityLabel,
+                          style: TextStyle(
+                            color: eq.severityColor,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
                           ),
-                          SizedBox(width: 8.w),
-                          _InfoChip(
-                            icon: Icons.radio_button_checked_rounded,
-                            label: '${eq.radiusKm.toInt()} km radius',
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 8.h),
-                      Row(
-                        children: [
-                          _InfoChip(
-                            icon: Icons.people_rounded,
-                            label: '${_fmt(eq.affected)} affected',
-                          ),
-                          SizedBox(width: 8.w),
-                          if (eq.casualties > 0)
-                            _InfoChip(
-                              icon: Icons.emergency_rounded,
-                              label: '${eq.casualties} casualties',
-                              isAlert: true,
-                            ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  SizedBox(height: 4.h),
+                  Text(
+                    eq.region,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  Row(
+                    children: [
+                      _InfoChip(
+                        icon: Icons.vertical_align_bottom_rounded,
+                        label: '${eq.depth} km depth',
+                      ),
+                      SizedBox(width: 8.w),
+                      _InfoChip(
+                        icon: Icons.radio_button_checked_rounded,
+                        label: '${eq.radiusKm.toInt()} km radius',
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  Row(
+                    children: [
+                      _InfoChip(
+                        icon: Icons.people_rounded,
+                        label: '${_fmt(eq.affected)} affected',
+                      ),
+                      SizedBox(width: 8.w),
+                      if (eq.casualties > 0)
+                        _InfoChip(
+                          icon: Icons.emergency_rounded,
+                          label: '${eq.casualties} casualties',
+                          isAlert: true,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -560,18 +665,14 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 eq.timeAgo,
-                style: TextStyle(
-                  color: AppColors.textHint,
-                  fontSize: 12.sp,
-                ),
+                style: TextStyle(color: AppColors.textHint, fontSize: 12.sp),
               ),
               SizedBox(height: 4.h),
               Container(
                 width: 8.w,
                 height: 8.w,
                 decoration: BoxDecoration(
-                  color:
-                      eq.isActive ? AppColors.primary : AppColors.textHint,
+                  color: eq.isActive ? AppColors.primary : AppColors.textHint,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -635,10 +736,7 @@ class _StatCard extends StatelessWidget {
             ),
             Text(
               unit,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 11.sp,
-              ),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11.sp),
             ),
           ],
         ),
