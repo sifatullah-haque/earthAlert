@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(mkdir -p \"/Volumes/Work/Personal Project/earthTracker/earth/lib/theme\" \"/Volumes/Work/Personal Project/earthTracker/earth/lib/models\" \"/Volumes/Work/Personal Project/earthTracker/earth/lib/pages\" \"/Volumes/Work/Personal Project/earthTracker/earth/lib/widgets\")",
+      "Bash(flutter pub *)",
+      "Bash(xargs perl -i -pe 's/\\\\.withOpacity\\\\\\(\\([^\\)]+\\)\\\\\\)/\\\\.withValues\\(alpha: \\\\1\\)/g')",
+      "Bash(flutter analyze *)"
+    ],
+    "additionalDirectories": [
+      "/Volumes/Work/Personal Project/earthTracker/earth/lib"
+    ]
+  }
+}
