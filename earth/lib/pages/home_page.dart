@@ -206,7 +206,7 @@ class _HomePageState extends State<HomePage> {
           ),
           SizedBox(width: 10.w),
           Text(
-            'EarthAlert',
+            'Earthquake Info & Alert',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 20.sp,

@@ -10,12 +10,14 @@ import 'pages/healthcare_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: AppColors.navBar,
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: AppColors.navBar,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
   runApp(const EarthTrackerApp());
 }
 
@@ -29,7 +31,7 @@ class EarthTrackerApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (_, __) => MaterialApp(
-        title: 'EarthAlert',
+        title: 'Earthquake',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
         home: const MainShell(),
@@ -63,10 +65,7 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
@@ -75,9 +74,7 @@ class _MainShellState extends State<MainShell> {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.navBar,
-        border: Border(
-          top: BorderSide(color: AppColors.divider, width: 1),
-        ),
+        border: Border(top: BorderSide(color: AppColors.divider, width: 1)),
       ),
       child: SafeArea(
         child: SizedBox(
@@ -227,8 +224,7 @@ class _SOSNavItem extends StatelessWidget {
             Text(
               'SOS',
               style: TextStyle(
-                color:
-                    isActive ? AppColors.primary : AppColors.textSecondary,
+                color: isActive ? AppColors.primary : AppColors.textSecondary,
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
               ),
