@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../models/dummy_data.dart';
 import '../models/help_request_model.dart';
@@ -330,7 +331,10 @@ class _HelpCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: TextButton.icon(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final uri = Uri(scheme: 'tel', path: request.phone);
+                        if (await canLaunchUrl(uri)) await launchUrl(uri);
+                      },
                       icon: const Icon(Icons.phone_rounded,
                           size: 16, color: AppColors.accent),
                       label: Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../models/dummy_data.dart';
 import '../models/healthcare_model.dart';
@@ -387,7 +388,10 @@ class _FacilityCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final uri = Uri(scheme: 'tel', path: facility.phone);
+                    if (await canLaunchUrl(uri)) await launchUrl(uri);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
